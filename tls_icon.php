@@ -51,12 +51,12 @@ class tls_icon extends rcube_plugin
 				$pos = strrpos($data, $needle);
 				$data = substr_replace($data, "", $pos, strlen($needle));
 				
-				$this->icon_img .= '<img class="lock_icon" src="plugins/roundcube_tls_icon/lock.svg" title="'. htmlentities($data) .'" />';
+				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="'. htmlentities($data) .'" />';
 			} else if(preg_match_all('/\([a-zA-Z]*, from userid [0-9]*\)/im', $Received, $items, PREG_PATTERN_ORDER)){
-				$this->icon_img .= '<img class="lock_icon" src="plugins/roundcube_tls_icon/blue_lock.svg" title="Mail was internal"';
+				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="Mail was internal"';
 			} 
 			else {
-				$this->icon_img .= '<img class="lock_icon" src="plugins/roundcube_tls_icon/unlock.svg" title="Message received over an unencrypted connection!"';
+				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="Message received over an unencrypted connection!"';
 			}
 		}
 
