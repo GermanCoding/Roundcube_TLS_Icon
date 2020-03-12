@@ -1,6 +1,6 @@
 <?php
 
-class roundcube_tls_icon extends rcube_plugin
+class tls_icon extends rcube_plugin
 {	
 	private $message_headers_done = false;
 	private $icon_img;
