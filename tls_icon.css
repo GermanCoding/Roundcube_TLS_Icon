@@ -1,0 +1,9 @@
+.lock_icon {
+	height: 13px; 
+	margin-left: 10px; 
+	vertical-align: middle; 
+	transition:all 0.3s ease;
+    text-decoration: underline; 
+    cursor: help;
+	white-space: pre-line;
+}
