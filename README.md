@@ -9,3 +9,5 @@ Note that while this talks about "encryption", this does not imply security. An 
 This also only validates the last hop of an email - some emails may run through multiple hops and we don't know anything about the security of these.
 
 Inspired by https://github.com/SS88UK/roundcube-easy-unsubscribe
+
+![Example screenshot](tls_icon_example.png)
