@@ -56,13 +56,14 @@ class tls_icon extends rcube_plugin
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="Mail was internal"';
 			} 
 			else {
+				// TODO: Mails received from localhost but without TLS are currently flagged insecure
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="Message received over an unencrypted connection!"';
 			}
 		}
 
 		if(isset($p['output']['subject']))
 		{
-			$p['output']['subject']['value'] = $p['output']['subject']['value'] . $this->icon_img;
+			$p['output']['subject']['value'] = htmlentities($p['output']['subject']['value']) . $this->icon_img;
 			$p['output']['subject']['html'] = 1;
 		}
 
