@@ -14,6 +14,8 @@ class tls_icon extends rcube_plugin
 		$this->add_hook('storage_init', array($this, 'storage_init'));
 		
 		$this->include_stylesheet('tls_icon.css');
+
+		$this->add_texts('localization/');
 	}
 	
 	public function storage_init($p)
@@ -23,7 +25,7 @@ class tls_icon extends rcube_plugin
 	}
 	
 	public function message_headers($p)
-	{		
+	{
 		if($this->message_headers_done===false)
 		{
 			$this->message_headers_done = true;
@@ -53,11 +55,11 @@ class tls_icon extends rcube_plugin
 				
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="'. htmlentities($data) .'" />';
 			} else if(preg_match_all('/\([a-zA-Z]*, from userid [0-9]*\)/im', $Received, $items, PREG_PATTERN_ORDER)){
-				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="Mail was internal" />';
+				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="' . $this->gettext('internal') . '" />';
 			} 
 			else {
 				// TODO: Mails received from localhost but without TLS are currently flagged insecure
-				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="Message received over an unencrypted connection!" />';
+				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="' . $this->gettext('unencrypted') . '" />';
 			}
 		}
 
