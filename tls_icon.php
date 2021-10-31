@@ -20,7 +20,7 @@ class tls_icon extends rcube_plugin
 	
 	public function storage_init($p)
 	{
-		$p['fetch_headers'] = trim($p['fetch_headers'] . ' ' . strtoupper('Received'));
+		$p['fetch_headers'] = trim(($p['fetch_headers']?? '') . ' ' . strtoupper('Received'));
 		return $p;
 	}
 	
