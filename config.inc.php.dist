@@ -1,0 +1,10 @@
+<?php
+
+// TLS Icon Plugin options
+// -----------------------
+// Number of hops to ignore. This ignores the last 'tls_icon_ignore_hops' number of hops.
+// May be useful in case your system generates a certain number of internal hops you want ignored.
+// Each Received-Header in the mail is considered as one hop.
+// This setting has no effect if its value exceeds the number of hops found in the mail.
+// Default: 0 (ignores no hops and uses the last Received-Header).
+$config['tls_icon_ignore_hops'] = 0;

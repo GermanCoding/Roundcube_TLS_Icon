@@ -4,11 +4,12 @@ class tls_icon extends rcube_plugin
 {	
 	private $message_headers_done = false;
 	private $icon_img;
+	private $rcmail;
 
 	function init()
 	{
-		$rcmail = rcmail::get_instance();
-		$layout = $rcmail->config->get('layout');
+		$this->rcmail = rcmail::get_instance();
+		$this->load_config();
 
 		$this->add_hook('message_headers_output', array($this, 'message_headers'));
 		$this->add_hook('storage_init', array($this, 'storage_init'));
@@ -18,6 +19,23 @@ class tls_icon extends rcube_plugin
 		$this->add_texts('localization/');
 	}
 	
+	function get_received_header_content($Received_Header)
+	{
+		$Received = null;
+		if(is_array($Received_Header)) {
+			$ignore_n_hops = $this->rcmail->config->get('tls_icon_ignore_hops');
+			if($ignore_n_hops && count($Received_Header) > $ignore_n_hops) {
+				$Received = $Received_Header[$ignore_n_hops];
+			}
+			else {
+				$Received = $Received_Header[0];
+			}
+		} else {
+			$Received = $Received_Header;
+		}
+		return $Received;
+	}
+
 	public function storage_init($p)
 	{
 		$p['fetch_headers'] = trim(($p['fetch_headers']?? '') . ' ' . strtoupper('Received'));
@@ -30,12 +48,8 @@ class tls_icon extends rcube_plugin
 		{
 			$this->message_headers_done = true;
 
-			$Received_Header = $p['headers']->others['received'];
-			if(is_array($Received_Header)) {
-				$Received = $Received_Header[0];
-			} else {
-				$Received = $Received_Header;
-			}
+			$Received_Header = $p['headers']->others['received'] ?? null;
+			$Received = $this->get_received_header_content($Received_Header);
 			
 			if($Received == null) {
 				// There was no Received Header. Possibly an outbound mail. Do nothing.
