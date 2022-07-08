@@ -13,5 +13,10 @@
     ],
     "require": {
         "roundcube/plugin-installer": ">=0.1.6"
+    },
+    "config": {
+        "allow-plugins": {
+            "roundcube/plugin-installer": true
+        }
     }
 }
