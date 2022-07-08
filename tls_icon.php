@@ -22,12 +22,11 @@ class tls_icon extends rcube_plugin
 	function get_received_header_content($Received_Header)
 	{
 		$Received = null;
-		if(is_array($Received_Header)) {
+		if (is_array($Received_Header)) {
 			$ignore_n_hops = $this->rcmail->config->get('tls_icon_ignore_hops');
-			if($ignore_n_hops && count($Received_Header) > $ignore_n_hops) {
+			if ($ignore_n_hops && count($Received_Header) > $ignore_n_hops) {
 				$Received = $Received_Header[$ignore_n_hops];
-			}
-			else {
+			} else {
 				$Received = $Received_Header[0];
 			}
 		} else {
@@ -38,47 +37,44 @@ class tls_icon extends rcube_plugin
 
 	public function storage_init($p)
 	{
-		$p['fetch_headers'] = trim(($p['fetch_headers']?? '') . ' ' . strtoupper('Received'));
+		$p['fetch_headers'] = trim(($p['fetch_headers'] ?? '') . ' ' . strtoupper('Received'));
 		return $p;
 	}
 
 	public function message_headers($p)
 	{
-		if($this->message_headers_done===false)
-		{
+		if ($this->message_headers_done === false) {
 			$this->message_headers_done = true;
 
 			$Received_Header = $p['headers']->others['received'] ?? null;
 			$Received = $this->get_received_header_content($Received_Header);
 
-			if($Received == null) {
+			if ($Received == null) {
 				// There was no Received Header. Possibly an outbound mail. Do nothing.
 				return $p;
 			}
 
-			if ( preg_match_all('/\(using TLS.*.*\) \(/im', $Received, $items, PREG_PATTERN_ORDER) ) {
+			if (preg_match_all('/\(using TLS.*.*\) \(/im', $Received, $items, PREG_PATTERN_ORDER)) {
 				$data = $items[0][0];
 
-				$needle = "(using ";
+				$needle = '(using ';
 				$pos = strpos($data, $needle);
-				$data = substr_replace($data, "", $pos, strlen($needle));
+				$data = substr_replace($data, '', $pos, strlen($needle));
 
-				$needle = ") (";
+				$needle = ') (';
 				$pos = strrpos($data, $needle);
-				$data = substr_replace($data, "", $pos, strlen($needle));
+				$data = substr_replace($data, '', $pos, strlen($needle));
 
-				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="'. htmlentities($data) .'" />';
-			} else if(preg_match_all('/\([a-zA-Z]*, from userid [0-9]*\)/im', $Received, $items, PREG_PATTERN_ORDER)){
+				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="' . htmlentities($data) . '" />';
+			} elseif (preg_match_all('/\([a-zA-Z]*, from userid [0-9]*\)/im', $Received, $items, PREG_PATTERN_ORDER)) {
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="' . $this->gettext('internal') . '" />';
-			}
-			else {
+			} else {
 				// TODO: Mails received from localhost but without TLS are currently flagged insecure
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="' . $this->gettext('unencrypted') . '" />';
 			}
 		}
 
-		if(isset($p['output']['subject']))
-		{
+		if (isset($p['output']['subject'])) {
 			$p['output']['subject']['value'] = htmlentities($p['output']['subject']['value']) . $this->icon_img;
 			$p['output']['subject']['html'] = 1;
 		}
