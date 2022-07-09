@@ -19,6 +19,8 @@ final class TlsIconTest extends TestCase
 	/** @var string */
 	private $strCryptedTlsv12WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)" />';
 
+	/** @var string */
+	private $strInternal = '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="Mail was internal" />';
 	public function testInstance()
 	{
 		$o = new tls_icon();
@@ -145,6 +147,38 @@ final class TlsIconTest extends TestCase
 					(using TLSv1.2) (No client certificate requested)
 					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
 					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testMessageHeadersInternal()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'by aaa.bbb.ccc (Postfix, from userid 0)
+					id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strInternal,
+					'html' => 1,
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'by aaa.bbb.ccc (Postfix, from userid 0)
+					id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
 				]
 			]
 		], $headersProcessed);
