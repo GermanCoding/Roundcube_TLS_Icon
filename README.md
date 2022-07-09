@@ -17,3 +17,8 @@ Inspired by [roundcube-easy-unsubscribe](https://github.com/SS88UK/roundcube-eas
 The [composer library](https://packagist.org/packages/germancoding/tls_icon) name is: `germancoding/tls_icon`.
 
 The plugin name to add to your config file is: `tls_icon`.
+
+## Requirements
+
+- Roundcube `1.3.0` or newer.
+- PHP `5.4` or newer.
