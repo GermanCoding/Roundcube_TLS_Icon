@@ -9,6 +9,16 @@ use PHPUnit\Framework\TestCase;
 
 final class TlsIconTest extends TestCase
 {
+
+	/** @var string */
+	private $strUnEnCrypted = '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="Message received over an unencrypted connection!" />';
+
+	/** @var string */
+	private $strCryptedTlsv12 = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2" />';
+
+	/** @var string */
+	private $strCryptedTlsv12WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)" />';
+
 	public function testInstance()
 	{
 		$o = new tls_icon();
@@ -32,4 +42,111 @@ final class TlsIconTest extends TestCase
 		], $o->storage_init(['fetch_headers' => 'spaces   ']));
 	}
 
+	public function testMessageHeadersNothing()
+	{
+		$o = new tls_icon();
+		$this->assertSame([], $o->message_headers([]));
+	}
+
+	public function testMessageHeadersNoMatching()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'my header',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strUnEnCrypted,
+					'html' => 1,
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'my header',
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testMessageHeadersTlsWithCipher()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
+					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
+					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strCryptedTlsv12WithCipher,
+					'html' => 1,
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
+					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
+					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testMessageHeadersTls()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
+					(using TLSv1.2) (No client certificate requested)
+					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strCryptedTlsv12,
+					'html' => 1,
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
+					(using TLSv1.2) (No client certificate requested)
+					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+				]
+			]
+		], $headersProcessed);
+	}
 }
