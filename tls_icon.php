@@ -37,7 +37,8 @@ class tls_icon extends rcube_plugin
 
 	public function storage_init($p)
 	{
-		$p['fetch_headers'] = trim(($p['fetch_headers'] ?? '') . ' ' . strtoupper('Received'));
+		$headers = isset($p['fetch_headers']) ? $p['fetch_headers'] : '';
+		$p['fetch_headers'] = trim($headers) . ' ' . strtoupper('Received');
 		return $p;
 	}
 
@@ -46,7 +47,7 @@ class tls_icon extends rcube_plugin
 		if ($this->message_headers_done === false) {
 			$this->message_headers_done = true;
 
-			$Received_Header = $p['headers']->others['received'] ?? null;
+			$Received_Header = isset($p['headers']->others['received']) ? $p['headers']->others['received'] : null;
 			$Received = $this->get_received_header_content($Received_Header);
 
 			if ($Received == null) {
