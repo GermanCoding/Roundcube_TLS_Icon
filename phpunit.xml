@@ -5,6 +5,12 @@
         backupGlobals="false"
         bootstrap="vendor/autoload.php"
 >
+    <filter>
+        <whitelist>
+            <file>tls_icon.php</file>
+        </whitelist>
+    </filter>
+
     <testsuites>
         <testsuite name="Unit tests">
             <directory suffix=".php">test/</directory>
