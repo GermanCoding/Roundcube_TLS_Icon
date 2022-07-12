@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": "^5.4 || ^7.0 || ^8.0",
-        "roundcube/plugin-installer": "^0.1.6"
+        "roundcube/plugin-installer": ">=0.1.6"
     },
     "config": {
         "allow-plugins": {
