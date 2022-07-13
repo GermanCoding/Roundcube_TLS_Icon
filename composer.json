@@ -12,11 +12,17 @@
         }
     ],
     "require": {
+        "php": "^5.4 || ^7.0 || ^8.0",
         "roundcube/plugin-installer": ">=0.1.6"
     },
     "config": {
         "allow-plugins": {
             "roundcube/plugin-installer": true
+        }
+    },
+    "extra": {
+        "roundcube": {
+            "min-version": "1.3.0"
         }
     }
 }
