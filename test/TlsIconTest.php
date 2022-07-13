@@ -23,6 +23,7 @@ final class TlsIconTest extends TestCase
 
 	/** @var string */
 	private $strInternal = '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="Mail was internal" />';
+
 	public function testInstance()
 	{
 		$o = new tls_icon();
