@@ -24,6 +24,13 @@ final class TlsIconTest extends TestCase
 	/** @var string */
 	private $strInternal = '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="Mail was internal" />';
 
+	/** @var string */
+	private $strSendmailCryptedTlsv13WithCipherNoVerify = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO" />';
+
+	/** @var string */
+	private $strSendmailCryptedTlsv12WithCipherVerify = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK" />';
+
+
 	public function testInstance()
 	{
 		$o = new tls_icon();
@@ -62,7 +69,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'my header',
 				]
@@ -75,7 +82,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'my header',
 				]
@@ -92,7 +99,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
 					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
@@ -108,7 +115,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
 					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
@@ -128,7 +135,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
 					(using TLSv1.2) (No client certificate requested)
@@ -144,7 +151,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
 					(using TLSv1.2) (No client certificate requested)
@@ -164,7 +171,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'by aaa.bbb.ccc (Postfix, from userid 0)
 					id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
@@ -178,7 +185,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => 'by aaa.bbb.ccc (Postfix, from userid 0)
 					id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
@@ -205,7 +212,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => $inputHeaders,
 				]
@@ -218,7 +225,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => $inputHeaders,
 				]
@@ -244,7 +251,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => $inputHeaders,
 				]
@@ -257,9 +264,81 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object) [
+			'headers' => (object)[
 				'others' => [
 					'received' => $inputHeaders,
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testSendmailTLS13NoVerify()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from 69-171-232-143.mail-mail.facebook.com (69-171-232-143.mail-mail.facebook.com [69.171.232.143])
+					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BI73F8b1489360
+					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
+					for <my@address>; Sun, 18 Dec 2022 07:03:16 GMT',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strSendmailCryptedTlsv13WithCipherNoVerify,
+					'html' => 1,
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from 69-171-232-143.mail-mail.facebook.com (69-171-232-143.mail-mail.facebook.com [69.171.232.143])
+					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BI73F8b1489360
+					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
+					for <my@address>; Sun, 18 Dec 2022 07:03:16 GMT',
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testSendmailTLS12WithVerify()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from smtp.github.com (out-18.smtp.github.com [192.30.252.201])
+					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BGMf4uY685293
+					(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+					for <my@address>; Fri, 16 Dec 2022 22:41:05 GMT',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strSendmailCryptedTlsv12WithCipherVerify,
+					'html' => 1,
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from smtp.github.com (out-18.smtp.github.com [192.30.252.201])
+					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BGMf4uY685293
+					(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+					for <my@address>; Fri, 16 Dec 2022 22:41:05 GMT',
 				]
 			]
 		], $headersProcessed);

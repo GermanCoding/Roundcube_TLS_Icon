@@ -7,6 +7,7 @@ class tls_icon extends rcube_plugin
 	private $rcmail;
 	private $postfix_tls_regex = "/\(using (TLS.*)\) \(/im";
 	private $postfix_local_regex = "/\([a-zA-Z]*, from userid [0-9]*\)/im";
+	private $sendmail_tls_regex = "/\(version=(TLS.*)\)\s+for/im";
 
 	function init()
 	{
@@ -57,7 +58,8 @@ class tls_icon extends rcube_plugin
 				return $p;
 			}
 
-			if (preg_match_all($this->postfix_tls_regex, $Received, $items, PREG_PATTERN_ORDER)) {
+			if (preg_match_all($this->postfix_tls_regex, $Received, $items, PREG_PATTERN_ORDER) ||
+				preg_match_all($this->sendmail_tls_regex, $Received, $items, PREG_PATTERN_ORDER)) {
 				$data = $items[1][0];
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="' . htmlentities($data) . '" />';
 			} elseif (preg_match_all($this->postfix_local_regex, $Received, $items, PREG_PATTERN_ORDER)) {
