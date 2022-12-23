@@ -5,6 +5,8 @@ class tls_icon extends rcube_plugin
 	private $message_headers_done = false;
 	private $icon_img;
 	private $rcmail;
+	private $postfix_tls_regex = "/\(using (TLS.*)\) \(/im";
+	private $postfix_local_regex = "/\([a-zA-Z]*, from userid [0-9]*\)/im";
 
 	function init()
 	{
@@ -55,19 +57,10 @@ class tls_icon extends rcube_plugin
 				return $p;
 			}
 
-			if (preg_match_all('/\(using TLS.*.*\) \(/im', $Received, $items, PREG_PATTERN_ORDER)) {
-				$data = $items[0][0];
-
-				$needle = '(using ';
-				$pos = strpos($data, $needle);
-				$data = substr_replace($data, '', $pos, strlen($needle));
-
-				$needle = ') (';
-				$pos = strrpos($data, $needle);
-				$data = substr_replace($data, '', $pos, strlen($needle));
-
+			if (preg_match_all($this->postfix_tls_regex, $Received, $items, PREG_PATTERN_ORDER)) {
+				$data = $items[1][0];
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="' . htmlentities($data) . '" />';
-			} elseif (preg_match_all('/\([a-zA-Z]*, from userid [0-9]*\)/im', $Received, $items, PREG_PATTERN_ORDER)) {
+			} elseif (preg_match_all($this->postfix_local_regex, $Received, $items, PREG_PATTERN_ORDER)) {
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="' . $this->gettext('internal') . '" />';
 			} else {
 				// TODO: Mails received from localhost but without TLS are currently flagged insecure
