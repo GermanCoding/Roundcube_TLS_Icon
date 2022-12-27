@@ -343,4 +343,40 @@ final class TlsIconTest extends TestCase
 			]
 		], $headersProcessed);
 	}
+
+	public function testSendmailTLS13MultipleRecipients()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
+					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BLGrgYw3602565
+					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
+					Wed, 21 Dec 2022 16:53:42 GMT',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strSendmailCryptedTlsv13WithCipherNoVerify,
+					'html' => 1,
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
+					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BLGrgYw3602565
+					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
+					Wed, 21 Dec 2022 16:53:42 GMT',
+				]
+			]
+		], $headersProcessed);
+	}
 }

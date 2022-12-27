@@ -4,7 +4,7 @@ class tls_icon extends rcube_plugin
 {
 	const POSTFIX_TLS_REGEX = "/\(using (TLS.*)\) \(/im";
 	const POSTFIX_LOCAL_REGEX = "/\([a-zA-Z]*, from userid [0-9]*\)/im";
-	const SENDMAIL_TLS_REGEX = "/\(version=(TLS.*)\)\s+for/im";
+	const SENDMAIL_TLS_REGEX = "/\(version=(TLS.*)\)(\s+for|;)/im";
 
 	private $message_headers_done = false;
 	private $icon_img;
