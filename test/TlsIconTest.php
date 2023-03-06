@@ -41,10 +41,10 @@ final class TlsIconTest extends TestCase
 	{
 		$o = new tls_icon();
 		$this->assertSame([
-			'fetch_headers' => ' RECEIVED'
+			'fetch_headers' => 'RECEIVED'
 		], $o->storage_init([]));
 		$this->assertSame([
-			'fetch_headers' => ' RECEIVED'
+			'fetch_headers' => 'RECEIVED'
 		], $o->storage_init(['fetch_headers' => null]));
 		$this->assertSame([
 			'fetch_headers' => 'foo bar RECEIVED'
