@@ -2,11 +2,12 @@
 
 class tls_icon extends rcube_plugin
 {
-	const POSTFIX_TLS_REGEX = "/\(using (TLS.*)\) \(/im";
+	const POSTFIX_TLS_REGEX = "/using\s*(TLS[v]?\d\.?\_?\d.*)/im";
 	const POSTFIX_LOCAL_REGEX = "/\([a-zA-Z]*, from userid [0-9]*\)/im";
-	const SENDMAIL_TLS_REGEX = "/\(version=(TLS.*)\)(\s+for|;)/im";
+	const SENDMAIL_TLS_REGEX = "/\(version=\s*(TLS[v]?\d\_?\.?\d)(?:\n|\,|\W)*cipher=(.*)\)/im";
 
 	private $message_headers_done = false;
+	private $message_id = 0;
 	private $icon_img;
 	private $rcmail;
 
@@ -16,7 +17,7 @@ class tls_icon extends rcube_plugin
 		$this->load_config();
 
 		$this->add_hook('message_headers_output', array($this, 'message_headers'));
-		$this->add_hook('storage_init', array($this, 'storage_init'));
+		$this->add_hook('message_load', array($this, 'message_load'));
 
 		$this->include_stylesheet('tls_icon.css');
 
@@ -39,11 +40,10 @@ class tls_icon extends rcube_plugin
 		return $Received;
 	}
 
-	public function storage_init($p)
+	public function message_load($p)
 	{
-		$headers = isset($p['fetch_headers']) ? $p['fetch_headers'] : '';
-		$p['fetch_headers'] = trim(trim($headers) . ' ' . strtoupper('Received'));
-		return $p;
+		// Save message id for retrieving headers
+		$this->message_id = $p['object']->uid;
 	}
 
 	public function message_headers($p)
@@ -51,19 +51,21 @@ class tls_icon extends rcube_plugin
 		if ($this->message_headers_done === false) {
 			$this->message_headers_done = true;
 
-			$Received_Header = isset($p['headers']->others['received']) ? $p['headers']->others['received'] : null;
-			$Received = $this->get_received_header_content($Received_Header);
+			// Get raw message headers from storage
+			$headers = $this->rcmail->get_storage()->get_raw_headers($this->message_id);
 
-			if ($Received == null) {
+			if ($headers == null) {
 				// There was no Received Header. Possibly an outbound mail. Do nothing.
 				return $p;
 			}
 
-			if (preg_match_all(tls_icon::POSTFIX_TLS_REGEX, $Received, $items, PREG_PATTERN_ORDER) ||
-				preg_match_all(tls_icon::SENDMAIL_TLS_REGEX, $Received, $items, PREG_PATTERN_ORDER)) {
-				$data = $items[1][0];
+			if (preg_match_all(tls_icon::POSTFIX_TLS_REGEX, $headers, $items, PREG_PATTERN_ORDER)) {
+				$data = preg_replace('/\s\s+/', '', $items[1][0]);
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="' . htmlentities($data) . '" />';
-			} elseif (preg_match_all(tls_icon::POSTFIX_LOCAL_REGEX, $Received, $items, PREG_PATTERN_ORDER)) {
+			} else if (preg_match_all(tls_icon::SENDMAIL_TLS_REGEX, $headers, $items, PREG_PATTERN_ORDER)) {
+				$data = preg_replace('/\s\s+/', '', $items[1][0]) . " with cipher " . preg_replace('/\s\s+/', '', $items[2][0]);
+				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="' . htmlentities($data) . '" />';
+			} elseif (preg_match_all(tls_icon::POSTFIX_LOCAL_REGEX, $headers, $items, PREG_PATTERN_ORDER)) {
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="' . $this->gettext('internal') . '" />';
 			} else {
 				// TODO: Mails received from localhost but without TLS are currently flagged insecure
@@ -72,7 +74,7 @@ class tls_icon extends rcube_plugin
 		}
 
 		if (isset($p['output']['subject'])) {
-			$p['output']['subject']['value'] = htmlentities($p['output']['subject']['value']) . $this->icon_img;
+			$p['output']['subject']['value'] = $p['output']['subject']['value'] . $this->icon_img;
 			$p['output']['subject']['html'] = 1;
 		}
 
