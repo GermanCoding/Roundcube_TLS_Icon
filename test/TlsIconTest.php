@@ -30,6 +30,8 @@ final class TlsIconTest extends TestCase
 	/** @var string */
 	private $strSendmailCryptedTlsv12WithCipherVerify = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK" />';
 
+	/** @var string */
+	private $strStalwartCryptedTlsv13WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384" />';
 
 	public function testInstance()
 	{
@@ -375,6 +377,42 @@ final class TlsIconTest extends TestCase
 					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BLGrgYw3602565
 					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
 					Wed, 21 Dec 2022 16:53:42 GMT',
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testStalwartTls()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174] (AS15169 Google LLC, US))
+					(using TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384)
+					by mail.example.org (Stalwart SMTP) with ESMTPS id 36DAF29F3A02098;
+					Mon, 16 Jun 2025 13:33:03 +0000',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strStalwartCryptedTlsv13WithCipher,
+					'html' => 1,
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174] (AS15169 Google LLC, US))
+					(using TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384)
+					by mail.example.org (Stalwart SMTP) with ESMTPS id 36DAF29F3A02098;
+					Mon, 16 Jun 2025 13:33:03 +0000',
 				]
 			]
 		], $headersProcessed);
