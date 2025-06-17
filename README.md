@@ -5,7 +5,7 @@ This plugin parses the "Received" header for the last hop and checks if TLS was 
 receiving MTA.
 
 In Postfix this can be enabled by
-setting [`smtpd_tls_received_header = yes`](https://www.postfix.org/postconf.5.html#smtpd_tls_received_header). Sendmail
+setting [`smtpd_tls_received_header = yes`](https://www.postfix.org/postconf.5.html#smtpd_tls_received_header). Sendmail and Stalwart
 should work out of the box. Other MTAs have not been explicitly tested.
 
 Note that while this talks about "encryption", this does not imply security. An encrypted mail may still be insecure,
