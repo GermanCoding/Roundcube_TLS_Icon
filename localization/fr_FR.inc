@@ -1,6 +1,5 @@
 <?php
-
 $labels = array();
-
-$labels['internal'] = 'Cet e-mail est interne';
-$labels['unencrypted'] = 'E-mail reçu via une connexion non chiffrée !';
+$labels['internal'] = 'Le courrier était interne';
+$labels['unencrypted'] = 'Message reçu sur une connexion non cryptée !';
+?>
