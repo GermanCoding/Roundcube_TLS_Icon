@@ -1,5 +1,5 @@
 <?php
 $labels = array();
-$labels['internal'] = 'كان البريد داخلياً';
+$labels['internal'] = 'بريد داخلي';
 $labels['unencrypted'] = 'تم استلام الرسالة عبر اتصال غير مشفر!';
 ?>
