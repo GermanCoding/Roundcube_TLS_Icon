@@ -1,8 +1,8 @@
 name: Run tests
 
 on:
-  push:
-  pull_request:
+    push:
+    pull_request:
 
 jobs:
     test-php:
@@ -12,11 +12,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php-version: ["5.4", "5.5", "5.6", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2", "8.3"]
+                php-version: ["7.3", "7.4", "8.0", "8.1", "8.2", "8.3"]
                 experimental: [false]
-                composer-options: ['']
-                include:
-                    - { php-version: 'nightly', composer-options: '--ignore-platform-req=php', experimental: true }
+                composer-options: [""]
         steps:
             - uses: actions/checkout@v3
             - name: Use php ${{ matrix.php-version }}

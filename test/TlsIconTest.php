@@ -33,6 +33,9 @@ final class TlsIconTest extends TestCase
 	/** @var string */
 	private $strStalwartCryptedTlsv13WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384" />';
 
+	/** @var string */
+	private $strNewPostfixTLSv13 = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256" />';
+
 	public function testInstance()
 	{
 		$o = new tls_icon();
@@ -67,7 +70,7 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -79,9 +82,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strUnEnCrypted,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strUnEnCrypted . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -97,7 +99,7 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -112,9 +114,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strCryptedTlsv12WithCipher,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strCryptedTlsv12WithCipher . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -133,7 +134,7 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -148,9 +149,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strCryptedTlsv12,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strCryptedTlsv12 . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -169,7 +169,38 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 01E29122019 for
+	 								<test@example.org>; Fri,  8 Jul 2022 21:44:48 +0000 (UTC)',
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'from' => [
+					'value' => $this->strInternal . 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => 'from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 01E29122019 for
+	 								<test@example.org>; Fri,  8 Jul 2022 21:44:48 +0000 (UTC)',
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testMessageHeadersLocalhost()
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -182,15 +213,49 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strInternal,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strInternal . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
 				'others' => [
 					'received' => 'by aaa.bbb.ccc (Postfix, from userid 0)
 					id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
+				]
+			]
+		], $headersProcessed);
+	}
+
+	public function testPostfixTLS13NewSyntax()
+	{
+		$header = 'from GVXPR05CU001.outbound.protection.outlook.com (mail-swedencentralazon11023139.outbound.protection.outlook.com [52.101.83.139])
+    (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+    (No client certificate requested)
+    by example.com with ESMTPS id EXAMPLE
+    for <test@example.com>; Tue, 16 Sep 2025 12:26:17 +0200 (CEST)';
+
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'from' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => $header,
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'from' => [
+					'value' => $this->strNewPostfixTLSv13 . 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => $header,
 				]
 			]
 		], $headersProcessed);
@@ -210,7 +275,7 @@ final class TlsIconTest extends TestCase
 		rcmail::get_instance()->config->set('tls_icon_ignore_hops', 2);
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -222,9 +287,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strCryptedTlsv12WithCipher,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strCryptedTlsv12WithCipher . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -249,7 +313,7 @@ final class TlsIconTest extends TestCase
 		rcmail::get_instance()->config->set('tls_icon_ignore_hops', 1);
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -261,9 +325,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strUnEnCrypted,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strUnEnCrypted . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -279,7 +342,7 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -294,9 +357,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strSendmailCryptedTlsv13WithCipherNoVerify,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strSendmailCryptedTlsv13WithCipherNoVerify . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -315,7 +377,7 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -330,9 +392,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strSendmailCryptedTlsv12WithCipherVerify,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strSendmailCryptedTlsv12WithCipherVerify . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -351,7 +412,7 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -366,9 +427,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strSendmailCryptedTlsv13WithCipherNoVerify,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strSendmailCryptedTlsv13WithCipherNoVerify . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
@@ -387,7 +447,7 @@ final class TlsIconTest extends TestCase
 		$o = new tls_icon();
 		$headersProcessed = $o->message_headers([
 			'output' => [
-				'subject' => [
+				'from' => [
 					'value' => 'Sent to you',
 				],
 			],
@@ -402,9 +462,8 @@ final class TlsIconTest extends TestCase
 		]);
 		$this->assertEquals([
 			'output' => [
-				'subject' => [
-					'value' => 'Sent to you' . $this->strStalwartCryptedTlsv13WithCipher,
-					'html' => 1,
+				'from' => [
+					'value' => $this->strStalwartCryptedTlsv13WithCipher . 'Sent to you',
 				],
 			],
 			'headers' => (object) [

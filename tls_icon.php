@@ -2,8 +2,9 @@
 
 class tls_icon extends rcube_plugin
 {
-	const POSTFIX_TLS_REGEX = "/\(using (TLS[^()]+(?:\([^)]+\))?)\)/im";
-	const POSTFIX_LOCAL_REGEX = "/\([a-zA-Z]*, from userid [0-9]*\)/im";
+	const POSTFIX_TLS_REGEX = "/\(using (TLS(?:[^()]|\([^()]*\))*)\)/im";
+	const POSTFIX_LOCAL_USER_REGEX = "/\([a-zA-Z]*, from userid [0-9]*\)/im";
+	const LOCAL_DELIVERY_REGEX = "/(?=.*ESMTPSA)\b(localhost|127\.0\.0\.1)\b/i"; // Requires that the message was directly delivered locally (ESMTPSA)
 	const SENDMAIL_TLS_REGEX = "/\(version=(TLS.*)\)(\s+for|;)/im";
 
 	private $message_headers_done = false;
@@ -59,21 +60,24 @@ class tls_icon extends rcube_plugin
 				return $p;
 			}
 
-			if (preg_match_all(tls_icon::POSTFIX_TLS_REGEX, $Received, $items, PREG_PATTERN_ORDER) ||
-				preg_match_all(tls_icon::SENDMAIL_TLS_REGEX, $Received, $items, PREG_PATTERN_ORDER)) {
+			if (
+				preg_match_all(tls_icon::POSTFIX_TLS_REGEX, $Received, $items, PREG_PATTERN_ORDER) ||
+				preg_match_all(tls_icon::SENDMAIL_TLS_REGEX, $Received, $items, PREG_PATTERN_ORDER)
+			) {
 				$data = $items[1][0];
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="' . htmlentities($data) . '" />';
-			} elseif (preg_match_all(tls_icon::POSTFIX_LOCAL_REGEX, $Received, $items, PREG_PATTERN_ORDER)) {
+			} elseif (
+				preg_match_all(tls_icon::POSTFIX_LOCAL_USER_REGEX, $Received, $items, PREG_PATTERN_ORDER) ||
+				preg_match_all(tls_icon::LOCAL_DELIVERY_REGEX, $Received, $items, PREG_PATTERN_ORDER)
+			) {
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="' . $this->gettext('internal') . '" />';
 			} else {
-				// TODO: Mails received from localhost but without TLS are currently flagged insecure
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="' . $this->gettext('unencrypted') . '" />';
 			}
 		}
 
-		if (isset($p['output']['subject'])) {
-			$p['output']['subject']['value'] = htmlentities($p['output']['subject']['value']) . $this->icon_img;
-			$p['output']['subject']['html'] = 1;
+		if (isset($p['output']['from'])) {
+			$p['output']['from']['value'] = $this->icon_img . $p['output']['from']['value'];
 		}
 
 		return $p;

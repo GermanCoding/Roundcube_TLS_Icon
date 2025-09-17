@@ -1,10 +1,10 @@
 {
-    "name": "germancoding/tls_icon",
+    "name": "christiaangoossens/tls_icon",
     "type": "roundcube-plugin",
     "description": "Displays a lock next to the message if it was received using TLS. Requires TLS logging enabled in the MTA.",
     "license": "MIT",
     "keywords": ["TLS", "SSL", "icon", "logging"],
-    "homepage": "https://github.com/GermanCoding/Roundcube_TLS_Icon",
+    "homepage": "https://github.com/christiaangoossens/Roundcube_TLS_Icon",
 	"repositories": [
         {
             "type": "composer",
@@ -12,7 +12,7 @@
         }
     ],
     "require": {
-        "php": "^5.4 || ^7.0 || ^8.0",
+        "php": "^7.3 || ^8.0",
         "roundcube/plugin-installer": ">=0.1.6"
     },
     "config": {
@@ -22,11 +22,11 @@
     },
     "extra": {
         "roundcube": {
-            "min-version": "1.3.0"
+            "min-version": "1.6.0"
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^4 || ^5 || ^6 || ^7 || ^8 || ^9"
+        "phpunit/phpunit": "^9"
     },
     "scripts": {
         "test": "@php phpunit"
