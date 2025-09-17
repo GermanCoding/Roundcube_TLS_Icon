@@ -33,6 +33,9 @@ final class TlsIconTest extends TestCase
 	/** @var string */
 	private $strStalwartCryptedTlsv13WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384" />';
 
+	/** @var string */
+	private $strNewPostfixTLSv13 = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256" />';
+
 	public function testInstance()
 	{
 		$o = new tls_icon();
@@ -195,6 +198,43 @@ final class TlsIconTest extends TestCase
 			]
 		], $headersProcessed);
 	}
+
+	public function testPostfixTLS13NewSyntax()
+	{
+		$header = 'from GVXPR05CU001.outbound.protection.outlook.com (mail-swedencentralazon11023139.outbound.protection.outlook.com [52.101.83.139])
+    (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+    (No client certificate requested)
+    by example.com with ESMTPS id EXAMPLE
+    for <test@example.com>; Tue, 16 Sep 2025 12:26:17 +0200 (CEST)';
+
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => $header,
+				]
+			]
+		]);
+		$this->assertEquals([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you' . $this->strNewPostfixTLSv13,
+					'html' => 1,
+				],
+			],
+			'headers' => (object)[
+				'others' => [
+					'received' => $header,
+				]
+			]
+		], $headersProcessed);
+	}
+
 
 	public function testMessageHeadersMultiFromWithConfig()
 	{
