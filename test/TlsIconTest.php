@@ -16,9 +16,6 @@ final class TlsIconTest extends TestCase
 	private $strUnEnCrypted = '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="Message received over an unencrypted connection!" />';
 
 	/** @var string */
-	private $strCryptedTlsv12 = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2" />';
-
-	/** @var string */
 	private $strCryptedTlsv12WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)" />';
 
 	/** @var string */
@@ -141,7 +138,7 @@ final class TlsIconTest extends TestCase
 			'headers' => (object)[
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
-					(using TLSv1.2) (No client certificate requested)
+					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
 					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
 					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
 				]
@@ -150,13 +147,13 @@ final class TlsIconTest extends TestCase
 		$this->assertEquals([
 			'output' => [
 				'from' => [
-					'value' => $this->strCryptedTlsv12 . 'Sent to you',
+					'value' => $this->strCryptedTlsv12WithCipher . 'Sent to you',
 				],
 			],
 			'headers' => (object)[
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
-					(using TLSv1.2) (No client certificate requested)
+					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
 					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
 					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
 				]
@@ -475,5 +472,60 @@ final class TlsIconTest extends TestCase
 				]
 			]
 		], $headersProcessed);
+	}
+
+	/**
+	 * Tests relating to TLS version and cypher suite strength
+	 */
+	public function assertResultForInput($input, $expected_icon)
+	{
+		$o = new tls_icon();
+		$headersProcessed = $o->message_headers([
+			'output' => [
+				'from' => [
+					'value' => 'From value',
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from example
+					(using ' . $input . ')
+					(No client certificate requested)
+					by example.com with ESMTPS id EXAMPLE
+					for <test@example.com>; Tue, 16 Sep 2025 12:26:17 +0200 (CEST)',
+				]
+			]
+		]);
+
+		$output_value = $headersProcessed['output']['from']['value'];
+		$this->assertStringContainsString($expected_icon, $output_value);
+	}
+
+	public function testRejectionOfOldTLSVersions()
+	{
+		// TLS 1.0
+		$this->assertResultForInput('TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits)', '/weak.svg');
+
+		// TLS 1.1
+		$this->assertResultForInput('TLSv1.1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits)', '/weak.svg');
+	}
+
+	public function testCiphers()
+	{
+		// TLS 1.2 good
+		$this->assertResultForInput('TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)', '/lock.svg');
+		$this->assertResultForInput('TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits)', '/lock.svg');
+		$this->assertResultForInput('TLSv1.2 with cipher ECDHE-ECDSA-CHACHA20-POLY1305', '/lock.svg');
+
+		// TLS 1.2 bad
+		$this->assertResultForInput('TLSv1.2 with cipher ECDHE-RSA-AES256-SHA (256/256 bits)', '/weak.svg'); // Fails on cipher
+
+		// TLS 1.3 good
+		$this->assertResultForInput('TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256', '/lock.svg');
+		$this->assertResultForInput('TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256', '/lock.svg');
+		$this->assertResultForInput('TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256', '/lock.svg');
+
+		// TLS 1.3 bad
+		$this->assertResultForInput('TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits) key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256', '/weak.svg'); // Fails on 2048 bit
 	}
 }

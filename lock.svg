@@ -1,3 +1,5 @@
-<svg width="1536" height="1536" xmlns="http://www.w3.org/2000/svg">
-    <path style="fill:#009933;" d="M320 768h512V576c0-141-115-256-256-256S320 435 320 576v192zm832 96v576c0 53-43 96-96 96H96c-53 0-96-43-96-96V864c0-53 43-96 96-96h32V576c0-246 202-448 448-448s448 202 448 448v192h32c53 0 96 43 96 96z"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 1153 1536" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <path d="M320,768L832,768L832,576C832,435 717,320 576,320C435,320 320,435 320,576L320,768ZM1152,864L1152,1440C1152,1493 1109,1536 1056,1536L96,1536C43,1536 0,1493 0,1440L0,864C0,811 43,768 96,768L128,768L128,576C128,330 330,128 576,128C822,128 1024,330 1024,576L1024,768L1056,768C1109,768 1152,811 1152,864Z" style="fill:rgb(0,153,51);fill-rule:nonzero;"/>
 </svg>
