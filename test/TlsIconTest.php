@@ -13,38 +13,61 @@ final class TlsIconTest extends TestCase
 {
 
 	/** @var string */
-	private $strUnEnCrypted = '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="Message received over an unencrypted connection!" />';
+	private $strUnEnCrypted;
 
 	/** @var string */
-	private $strCryptedTlsv12 = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2" />';
+	private $strCryptedTlsv12;
 
 	/** @var string */
-	private $strCryptedTlsv12WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)" />';
+	private $strCryptedTlsv12WithCipher;
 
 	/** @var string */
-	private $strInternal = '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="Mail was internal" />';
+	private $strInternal;
 
 	/** @var string */
-	private $strSendmailCryptedTlsv13WithCipherNoVerify = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO" />';
+	private $strSendmailCryptedTlsv13WithCipherNoVerify;
 
 	/** @var string */
-	private $strSendmailCryptedTlsv12WithCipherVerify = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK" />';
+	private $strSendmailCryptedTlsv12WithCipherVerify;
 
 	/** @var string */
-	private $strStalwartCryptedTlsv13WithCipher = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384" />';
+	private $strStalwartCryptedTlsv13WithCipher;
 
 	/** @var string */
-	private $strNewPostfixTLSv13 = '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256" />';
+	private $strNewPostfixTLSv13;
+
+	public function __construct($name = null, array $data = [], $dataName = '')
+	{
+		parent::__construct($name, $data, $dataName);
+		$plugin = new tls_icon();
+		$plugin->init();
+		$this->strUnEnCrypted = '<img class="lock_icon" src="' . $plugin->get_svg_path('unlock.svg') . '" title="Message received over an unencrypted connection!" />';
+		$this->strCryptedTlsv12 = '<img class="lock_icon" src="' . $plugin->get_svg_path('lock.svg') . '" title="TLSv1.2" />';
+		$this->strCryptedTlsv12WithCipher = '<img class="lock_icon" src="' . $plugin->get_svg_path('lock.svg') . '" title="TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)" />';
+		$this->strInternal = '<img class="lock_icon" src="' . $plugin->get_svg_path('blue_lock.svg') . '" title="Mail was internal" />';
+		$this->strSendmailCryptedTlsv13WithCipherNoVerify = '<img class="lock_icon" src="' . $plugin->get_svg_path('lock.svg') . '" title="TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO" />';
+		$this->strSendmailCryptedTlsv12WithCipherVerify = '<img class="lock_icon" src="' . $plugin->get_svg_path('lock.svg') . '" title="TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK" />';
+		$this->strStalwartCryptedTlsv13WithCipher = '<img class="lock_icon" src="' . $plugin->get_svg_path('lock.svg') . '" title="TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384" />';
+		$this->strNewPostfixTLSv13 = '<img class="lock_icon" src="' . $plugin->get_svg_path('lock.svg') . '" title="TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits) key-exchange ECDHE (secp384r1) server-signature RSA-PSS (4096 bits) server-digest SHA256" />';
+	}
+
+	protected function tearDown(): void
+	{
+		rcmail::$instance = null;
+		parent::tearDown();
+	}
 
 	public function testInstance()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$this->assertInstanceOf('tls_icon', $o);
 	}
 
 	public function testStorage_Init()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$this->assertSame([
 			'fetch_headers' => 'RECEIVED'
 		], $o->storage_init([]));
@@ -62,19 +85,21 @@ final class TlsIconTest extends TestCase
 	public function testMessageHeadersNothing()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$this->assertSame([], $o->message_headers([]));
 	}
 
 	public function testMessageHeadersNoMatching()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'my header',
 				]
@@ -87,7 +112,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'my header',
 				]
@@ -98,18 +123,19 @@ final class TlsIconTest extends TestCase
 	public function testMessageHeadersTlsWithCipher()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
-					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
-					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
-					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+                    (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
+                    by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+                    for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
 				]
 			]
 		]);
@@ -120,12 +146,12 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
-					(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
-					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
-					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+                    (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits)) (No client certificate requested)
+                    by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+                    for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
 				]
 			]
 		], $headersProcessed);
@@ -134,18 +160,19 @@ final class TlsIconTest extends TestCase
 	public function testMessageHeadersTls()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
-					(using TLSv1.2) (No client certificate requested)
-					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
-					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+                    (using TLSv1.2) (No client certificate requested)
+                    by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+                    for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
 				]
 			]
 		]);
@@ -156,12 +183,12 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from smtp.github.com (out-21.smtp.github.com [192.30.252.204])
-					(using TLSv1.2) (No client certificate requested)
-					by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
-					for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
+                    (using TLSv1.2) (No client certificate requested)
+                    by mail.example.org (Postfix) with ESMTPS id 46B4C497C2
+                    for <test@mail.example.org>; Sat, 9 Jul 2022 14:03:01 +0000 (UTC)',
 				]
 			]
 		], $headersProcessed);
@@ -170,16 +197,17 @@ final class TlsIconTest extends TestCase
 	public function testMessageHeadersInternal()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'by aaa.bbb.ccc (Postfix, from userid 0)
-					id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
+                    id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
 				]
 			]
 		]);
@@ -190,10 +218,10 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'by aaa.bbb.ccc (Postfix, from userid 0)
-					id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
+                    id A70248414D5; Sun, 26 Apr 2020 16:49:01 +0200 (CEST)',
 				]
 			]
 		], $headersProcessed);
@@ -203,16 +231,17 @@ final class TlsIconTest extends TestCase
 	public function testMessageHeadersInternalLocalhostIPv4()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from mail.whitequark.org (localhost [127.0.0.1])
-				by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
+                by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
 				]
 			]
 		]);
@@ -223,10 +252,10 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from mail.whitequark.org (localhost [127.0.0.1])
-				by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
+                by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
 				]
 			]
 		], $headersProcessed);
@@ -235,16 +264,17 @@ final class TlsIconTest extends TestCase
 	public function testMessageHeadersInternalLocalhostIPv6()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from mail.whitequark.org (localhost [IPv6:::1])
-				by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
+                by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
 				]
 			]
 		]);
@@ -255,10 +285,10 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from mail.whitequark.org (localhost [IPv6:::1])
-				by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
+                by mail.whitequark.org (Postfix) with ESMTP id CDCA2E08B7',
 				]
 			]
 		], $headersProcessed);
@@ -273,13 +303,14 @@ final class TlsIconTest extends TestCase
     for <test@example.com>; Tue, 16 Sep 2025 12:26:17 +0200 (CEST)';
 
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => $header,
 				]
@@ -292,7 +323,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => $header,
 				]
@@ -319,7 +350,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => $inputHeaders,
 				]
@@ -332,7 +363,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => $inputHeaders,
 				]
@@ -358,7 +389,7 @@ final class TlsIconTest extends TestCase
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => $inputHeaders,
 				]
@@ -371,7 +402,7 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => $inputHeaders,
 				]
@@ -382,18 +413,19 @@ final class TlsIconTest extends TestCase
 	public function testSendmailTLS13NoVerify()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from 69-171-232-143.mail-mail.facebook.com (69-171-232-143.mail-mail.facebook.com [69.171.232.143])
-					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BI73F8b1489360
-					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
-					for <my@address>; Sun, 18 Dec 2022 07:03:16 GMT',
+                    by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BI73F8b1489360
+                    (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
+                    for <my@address>; Sun, 18 Dec 2022 07:03:16 GMT',
 				]
 			]
 		]);
@@ -404,12 +436,12 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from 69-171-232-143.mail-mail.facebook.com (69-171-232-143.mail-mail.facebook.com [69.171.232.143])
-					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BI73F8b1489360
-					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
-					for <my@address>; Sun, 18 Dec 2022 07:03:16 GMT',
+                    by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BI73F8b1489360
+                    (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO)
+                    for <my@address>; Sun, 18 Dec 2022 07:03:16 GMT',
 				]
 			]
 		], $headersProcessed);
@@ -418,18 +450,19 @@ final class TlsIconTest extends TestCase
 	public function testSendmailTLS12WithVerify()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from smtp.github.com (out-18.smtp.github.com [192.30.252.201])
-					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BGMf4uY685293
-					(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-					for <my@address>; Fri, 16 Dec 2022 22:41:05 GMT',
+                    by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BGMf4uY685293
+                    (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+                    for <my@address>; Fri, 16 Dec 2022 22:41:05 GMT',
 				]
 			]
 		]);
@@ -440,12 +473,12 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from smtp.github.com (out-18.smtp.github.com [192.30.252.201])
-					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BGMf4uY685293
-					(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-					for <my@address>; Fri, 16 Dec 2022 22:41:05 GMT',
+                    by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BGMf4uY685293
+                    (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+                    for <my@address>; Fri, 16 Dec 2022 22:41:05 GMT',
 				]
 			]
 		], $headersProcessed);
@@ -454,18 +487,19 @@ final class TlsIconTest extends TestCase
 	public function testSendmailTLS13MultipleRecipients()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
 					'value' => 'Sent to you',
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
-					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BLGrgYw3602565
-					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
-					Wed, 21 Dec 2022 16:53:42 GMT',
+                    by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BLGrgYw3602565
+                    (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
+                    Wed, 21 Dec 2022 16:53:42 GMT',
 				]
 			]
 		]);
@@ -476,12 +510,12 @@ final class TlsIconTest extends TestCase
 					'html' => 1,
 				],
 			],
-			'headers' => (object)[
+			'headers' => (object) [
 				'others' => [
 					'received' => 'from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
-					by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BLGrgYw3602565
-					(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
-					Wed, 21 Dec 2022 16:53:42 GMT',
+                    by mail.aegee.org (8.17.1/8.17.1) with ESMTPS id 2BLGrgYw3602565
+                    (version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NO);
+                    Wed, 21 Dec 2022 16:53:42 GMT',
 				]
 			]
 		], $headersProcessed);
@@ -490,6 +524,7 @@ final class TlsIconTest extends TestCase
 	public function testStalwartTls()
 	{
 		$o = new tls_icon();
+		$o->init();
 		$headersProcessed = $o->message_headers([
 			'output' => [
 				'subject' => [
@@ -499,9 +534,9 @@ final class TlsIconTest extends TestCase
 			'headers' => (object) [
 				'others' => [
 					'received' => 'from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174] (AS15169 Google LLC, US))
-					(using TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384)
-					by mail.example.org (Stalwart SMTP) with ESMTPS id 36DAF29F3A02098;
-					Mon, 16 Jun 2025 13:33:03 +0000',
+                    (using TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384)
+                    by mail.example.org (Stalwart SMTP) with ESMTPS id 36DAF29F3A02098;
+                    Mon, 16 Jun 2025 13:33:03 +0000',
 				]
 			]
 		]);
@@ -515,11 +550,65 @@ final class TlsIconTest extends TestCase
 			'headers' => (object) [
 				'others' => [
 					'received' => 'from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174] (AS15169 Google LLC, US))
-					(using TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384)
-					by mail.example.org (Stalwart SMTP) with ESMTPS id 36DAF29F3A02098;
-					Mon, 16 Jun 2025 13:33:03 +0000',
+                    (using TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384)
+                    by mail.example.org (Stalwart SMTP) with ESMTPS id 36DAF29F3A02098;
+                    Mon, 16 Jun 2025 13:33:03 +0000',
 				]
 			]
 		], $headersProcessed);
+	}
+
+	public function testAssetUrlStubCanReturnLegacyPath()
+	{
+		$rcmail = rcmail::get_instance();
+		$rcmail->output->set_asset_url_callback(function ($path) {
+			return 'plugins/tls_icon/' . basename($path);
+		});
+
+		$plugin = new tls_icon();
+		$plugin->init();
+		$this->assertSame('plugins/tls_icon/lock.svg', $plugin->get_svg_path('lock.svg'));
+	}
+
+	public function testAssetUrlStubCanReturnStaticPhpPath()
+	{
+		$rcmail = rcmail::get_instance();
+		$rcmail->output->set_asset_url_callback(function ($path) {
+			return 'static.php/' . $path;
+		});
+
+		$plugin = new tls_icon();
+		$plugin->init();
+		$this->assertSame('static.php/plugins/tls_icon/lock.svg', $plugin->get_svg_path('lock.svg'));
+	}
+
+	public function testMessageHeadersUsesStaticPhpAssetUrl()
+	{
+		$rcmail = rcmail::get_instance();
+		$rcmail->output->set_asset_url_callback(function ($path) {
+			return 'static.php/' . $path;
+		});
+
+		$plugin = new tls_icon();
+		$plugin->init();
+
+		$headersProcessed = $plugin->message_headers([
+			'output' => [
+				'subject' => [
+					'value' => 'Sent to you',
+				],
+			],
+			'headers' => (object) [
+				'others' => [
+					'received' => 'from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174] (AS15169 Google LLC, US))
+                    (using TLSv1.3 with cipher TLS13_AES_256_GCM_SHA384)
+                    by mail.example.org (Stalwart SMTP) with ESMTPS id 36DAF29F3A02098;
+                    Mon, 16 Jun 2025 13:33:03 +0000',
+				]
+			]
+		]);
+
+		$this->assertSame(1, $headersProcessed['output']['subject']['html']);
+		$this->assertStringContainsString('src="static.php/plugins/tls_icon/lock.svg"', $headersProcessed['output']['subject']['value']);
 	}
 }
