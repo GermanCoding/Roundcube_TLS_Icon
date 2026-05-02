@@ -10,6 +10,51 @@ class tls_icon extends rcube_plugin
 	private $icon_img;
 	private $rcmail;
 
+	private function asset_url($file)
+	{
+		$file = ltrim($file, '/');
+		$url = '';
+
+		if (method_exists($this, 'url')) {
+			$url = $this->url($file);
+		} elseif (!empty($this->urlbase) && is_string($this->urlbase)) {
+			$url = rtrim($this->urlbase, '/') . '/' . $file;
+		} else {
+			$url = 'plugins/tls_icon/' . $file;
+		}
+
+		if (preg_match('/^(?:[a-z][a-z0-9+.-]*:|\\/)/i', $url)) {
+			return $url;
+		}
+
+		if ($this->rcmail && isset($this->rcmail->output) && method_exists($this->rcmail->output, 'abs_url')) {
+			return $this->rcmail->output->abs_url($url);
+		}
+
+		return $url;
+	}
+
+	private function icon_tag($file, $title)
+	{
+		return '<img class="lock_icon" src="' . $this->icon_src($file) . '" title="' . $title . '" />';
+	}
+
+	private function icon_src($file)
+	{
+		$file = ltrim($file, '/');
+		$path = __DIR__ . '/' . $file;
+
+		if (is_readable($path) && preg_match('/\.svg$/i', $file)) {
+			$svg = @file_get_contents($path);
+
+			if (is_string($svg) && $svg !== '') {
+				return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode($svg);
+			}
+		}
+
+		return $this->asset_url($file);
+	}
+
 	function init()
 	{
 		$this->rcmail = rcmail::get_instance();
@@ -64,10 +109,12 @@ class tls_icon extends rcube_plugin
 				preg_match_all(tls_icon::SENDMAIL_TLS_REGEX, $Received, $items, PREG_PATTERN_ORDER)
 			) {
 				$data = $items[1][0];
-				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/lock.svg" title="' . htmlentities($data) . '" />';
+				$this->icon_img .= $this->icon_tag('lock.svg', htmlentities($data));
 			} elseif (preg_match_all(tls_icon::POSTFIX_LOCAL_REGEX, $Received, $items, PREG_PATTERN_ORDER)) {
-				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/blue_lock.svg" title="' . $this->gettext('internal') . '" />';
+				$this->icon_img .= $this->icon_tag('blue_lock.svg', $this->gettext('internal'));
 			} else {
+				// TODO: Mails received from localhost but without TLS are currently flagged insecure
+				$this->icon_img .= $this->icon_tag('unlock.svg', $this->gettext('unencrypted'));
 				$this->icon_img .= '<img class="lock_icon" src="plugins/tls_icon/unlock.svg" title="' . $this->gettext('unencrypted') . '" />';
 			}
 		}

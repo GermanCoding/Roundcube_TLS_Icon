@@ -31,6 +31,11 @@ class rcmail
 	public $config;
 
 	/**
+	 * @var rcmail_output
+	 */
+	public $output;
+
+	/**
 	 * @var self|null
 	 */
 	public static $instance = null;
@@ -38,6 +43,7 @@ class rcmail
 	public function __construct()
 	{
 		$this->config = new rcmail_config();
+		$this->output = new rcmail_output();
 	}
 
 	public static function get_instance() {
@@ -46,5 +52,13 @@ class rcmail
 		}
 
 		return static::$instance;
+	}
+}
+
+class rcmail_output
+{
+	public function abs_url($path)
+	{
+		return '/' . ltrim($path, '/');
 	}
 }
