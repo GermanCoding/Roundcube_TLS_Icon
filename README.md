@@ -25,8 +25,8 @@ The plugin name to add to your config file is: `tls_icon`.
 
 ## Requirements
 
-- Roundcube `1.3.0` or newer.
-- PHP `5.4` or newer.
+- Roundcube `1.3.0` or newer (tested up to 1.7).
+- PHP `7.1` or newer.
 
 ## Currently supported languages
 
